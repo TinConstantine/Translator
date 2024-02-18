@@ -1,4 +1,6 @@
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
+import 'package:dich_x_noi_tu/bloc/events/translate_event.dart';
+import 'package:dich_x_noi_tu/bloc/translate_bloc.dart';
 import 'package:dich_x_noi_tu/ui/page/book_mark.dart';
 import 'package:dich_x_noi_tu/ui/page/camera_page.dart';
 import 'package:dich_x_noi_tu/ui/page/history_page.dart';
@@ -6,6 +8,7 @@ import 'package:dich_x_noi_tu/ui/page/translate_page.dart';
 import 'package:dich_x_noi_tu/ui/page/widget/app_bar.dart';
 import 'package:dich_x_noi_tu/ui/page/words_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../global.dart';
 import 'page/widget/left_drawer.dart';
 
@@ -39,7 +42,14 @@ class _ScreenAppState extends State<ScreenApp> {
             customAppBar(title: "Language Translate", showLeading: false);
         break;
       case 3:
-        _myAppBar = customAppBar(title: "History", onPressed: backToHomePage);
+        _myAppBar =
+            customAppBar(title: "History", onPressed: backToHomePage, actions: [
+          TextButton(
+              onPressed: () {
+                context.read<TranslateBloc>().add(TranslateEventClearAll());
+              },
+              child: const Text('Clear all'))
+        ]);
         break;
       case 4:
         _myAppBar = customAppBar(title: "Favourite", onPressed: backToHomePage);

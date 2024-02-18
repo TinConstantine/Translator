@@ -40,6 +40,7 @@ dependencies:
   device_preview: ^1.1.0
   convex_bottom_bar: ^3.2.0
   equatable: ^2.0.5
+  path: ^1.8.2
 
 dev_dependencies:
   flutter_test:

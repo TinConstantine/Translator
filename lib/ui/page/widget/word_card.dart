@@ -1,7 +1,14 @@
 import 'package:dich_x_noi_tu/global.dart';
 import 'package:flutter/material.dart';
 
-Widget wordCard({String? vieWord, String? engWord}) {
+Widget wordCard(
+    {String? originalLang,
+    String? translatorLang,
+    String? originalWord,
+    String? translatorWord,
+    IconData? icon,
+    void Function()? onPressed}) {
+  bool isShowIcon = icon != null;
   return Card(
     color: colorAppBar.withAlpha(25),
     child: Padding(
@@ -9,9 +16,11 @@ Widget wordCard({String? vieWord, String? engWord}) {
       child: Column(
         children: [
           word(
-              language: 'en',
-              translateWord: engWord,
-              icon: IconButton(onPressed: () {}, icon: const Icon(Icons.star))),
+              language: originalLang,
+              translateWord: originalWord,
+              icon: isShowIcon
+                  ? IconButton(onPressed: onPressed, icon: Icon(icon))
+                  : null),
           Padding(
             padding: const EdgeInsets.only(left: 15, right: 35),
             child: Container(
@@ -20,8 +29,8 @@ Widget wordCard({String? vieWord, String? engWord}) {
             ),
           ),
           word(
-            language: 'vi',
-            translateWord: vieWord,
+            language: translatorLang,
+            translateWord: translatorWord,
           )
         ],
       ),

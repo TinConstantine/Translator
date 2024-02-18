@@ -7,34 +7,37 @@ abstract class TranslateEvent extends Equatable {
   List<Object> get props => [];
 }
 
+class TranslateEventClearBox extends TranslateEvent {}
+
 class TranslateEventTranslator extends TranslateEvent {
   final String text;
-
-  TranslateEventTranslator({required this.text});
+  final String originalLang;
+  final String translatorLang;
+  TranslateEventTranslator(
+      {required this.text,
+      required this.originalLang,
+      required this.translatorLang});
   @override
-  List<Object> get props => [text];
+  List<Object> get props => [text, originalLang, translatorLang];
 }
 
-class TranslateEventAddToDatabase extends TranslateEvent {
+class TranslateEventAddBookMark extends TranslateEvent {
   final Translator translator;
-  final bool addToFavourite;
-  TranslateEventAddToDatabase(
-      {required this.translator, this.addToFavourite = false});
+  TranslateEventAddBookMark({required this.translator});
   @override
-  List<Object> get props => [translator, addToFavourite];
+  List<Object> get props => [translator];
 }
 
 class TranslateEventRemoveFromDatabase extends TranslateEvent {
-  final bool tableName;
-  final String primaryKey;
-  final bool deleteAllHistory;
+  final String originalWord;
+  final String tableName;
   TranslateEventRemoveFromDatabase(
-      {this.deleteAllHistory = false,
-      required this.primaryKey,
-      required this.tableName});
+      {required this.originalWord, required this.tableName});
   @override
-  List<Object> get props => [primaryKey, tableName, deleteAllHistory];
+  List<Object> get props => [originalWord, tableName];
 }
+
+class TranslateEventClearAll extends TranslateEvent {}
 
 class TranslateEventGetData extends TranslateEvent {
   final String tableName;
@@ -42,3 +45,12 @@ class TranslateEventGetData extends TranslateEvent {
   @override
   List<Object> get props => [tableName];
 }
+
+class TranslateEventCheckExistBookMark extends TranslateEvent {
+  final String originalWord;
+  TranslateEventCheckExistBookMark({required this.originalWord});
+  @override
+  List<Object> get props => [originalWord];
+}
+
+class TranslateEventInitial extends TranslateEvent {}

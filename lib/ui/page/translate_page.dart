@@ -1,20 +1,30 @@
+import 'package:dich_x_noi_tu/bloc/app_bloc.dart';
+import 'package:dich_x_noi_tu/bloc/events/app_event.dart';
 import 'package:dich_x_noi_tu/bloc/events/translate_event.dart';
+import 'package:dich_x_noi_tu/bloc/states/app_state.dart';
 import 'package:dich_x_noi_tu/bloc/states/translate_state.dart';
 import 'package:dich_x_noi_tu/bloc/translate_bloc.dart';
+import 'package:dich_x_noi_tu/models/language.dart';
+import 'package:dich_x_noi_tu/models/translator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../global.dart';
 
-class TranslatePage extends StatefulWidget {
-  const TranslatePage({super.key});
+class TranslatePage extends StatelessWidget {
+  TranslatePage({super.key});
 
-  @override
-  State<TranslatePage> createState() => _TranslatePageState();
-}
-
-class _TranslatePageState extends State<TranslatePage> {
   bool isShow = false;
+  bool isExist = false;
+  late String _originalLang;
+
+  late String _translatorLang;
+
+  late String _originalLangFlag;
+
+  late String _translatorLangFlag;
+
+  late Language _currentLanguage;
 
   final TextEditingController _originalTextController = TextEditingController();
 
@@ -32,23 +42,79 @@ class _TranslatePageState extends State<TranslatePage> {
         } else if (state is TranslateStateSucessfully) {
           isShow = true;
           _translateTextController.text = state.text;
+        } else if (state is TranslateStateClearBox) {
+          isShow = false;
+          _translateTextController.clear();
+          _originalTextController.clear();
+        } else if (state is TranslateStateCheckExistBookMark) {
+          isExist = state.isExist;
+          // } else if (state is TranslateStateDeleteSucessfuly) {
+          //   isExist = false;
         }
-        return Padding(
-            padding: const EdgeInsets.only(top: 20, left: 15, right: 15),
-            child: Column(children: [
-              _language(),
-              const SizedBox(height: 20),
-              _originalWordsBox(context, controller: _originalTextController),
-              const SizedBox(height: 20),
-              if (isShow)
-                _translateWordsBox(context,
-                    controller: _translateTextController)
-            ]));
+        return BlocBuilder<AppBloc, AppState>(
+          builder: (context, state) {
+            if (state is AppStateChange) {
+              _currentLanguage = state.lang;
+
+              switch (state.lang.originalLang) {
+                case LanguageEnum.en:
+                  _originalLang = "English";
+                  _originalLangFlag = flagEng;
+                  _translatorLang = "Việt Nam";
+                  _translatorLangFlag = flagVie;
+                  break;
+                case LanguageEnum.vi:
+                  _originalLang = "Việt Nam";
+                  _originalLangFlag = flagVie;
+                  _translatorLang = "English";
+                  _translatorLangFlag = flagEng;
+                  break;
+              }
+              return Padding(
+                  padding: const EdgeInsets.only(top: 20, left: 15, right: 15),
+                  child: Column(children: [
+                    _language(context,
+                        leftBoxFlag: _originalLangFlag,
+                        leftBoxLang: _originalLang,
+                        rightBoxFlag: _translatorLangFlag,
+                        rightBoxLang: _translatorLang, onpress: () {
+                      dynamic temp;
+                      temp = _originalTextController.text;
+                      _originalTextController.text =
+                          _translateTextController.text;
+                      _translateTextController.text = temp;
+                      final swapLang = Language(
+                          originalLang: _currentLanguage.translatorLang,
+                          translatorLang: _currentLanguage.originalLang);
+
+                      context
+                          .read<AppBloc>()
+                          .add(AppEventChange(lang: swapLang));
+                    }),
+                    const SizedBox(height: 20),
+                    _originalWordsBox(context,
+                        controller: _originalTextController,
+                        language: _originalLang),
+                    const SizedBox(height: 20),
+                    if (isShow)
+                      _translateWordsBox(context,
+                          controller: _translateTextController,
+                          language: _translatorLang)
+                  ]));
+            }
+            return const Placeholder();
+          },
+        );
       },
     );
   }
 
-  Widget _language() {
+  Widget _language(BuildContext context,
+      {required String leftBoxLang,
+      required String leftBoxFlag,
+      required String rightBoxLang,
+      required String rightBoxFlag,
+      required void Function()? onpress}) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(30),
@@ -59,9 +125,9 @@ class _TranslatePageState extends State<TranslatePage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _boxFlagLeft(img: flagEng, language: "English"),
-            IconButton(onPressed: () {}, icon: const Icon(Icons.swap_horiz)),
-            _boxFlagRight(img: flagVie, language: "Việt Nam"),
+            _boxFlagLeft(img: leftBoxFlag, language: leftBoxLang),
+            IconButton(onPressed: onpress, icon: const Icon(Icons.swap_horiz)),
+            _boxFlagRight(img: rightBoxFlag, language: rightBoxLang),
           ],
         ),
       ),
@@ -109,14 +175,12 @@ class _TranslatePageState extends State<TranslatePage> {
   Widget _originalWordsBox(
     BuildContext context, {
     required TextEditingController controller,
+    required String language,
   }) {
     return _translateBox(context, controller: controller, onPressedDelete: () {
-      setState(() {
-        _originalTextController.clear();
-        isShow = false;
-      });
+      context.read<TranslateBloc>().add(TranslateEventClearBox());
     },
-        language: 'English',
+        language: language,
         bottomBox: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -129,9 +193,13 @@ class _TranslatePageState extends State<TranslatePage> {
             ),
             ElevatedButton(
               onPressed: () {
-                context
-                    .read<TranslateBloc>()
-                    .add(TranslateEventTranslator(text: controller.text));
+                context.read<TranslateBloc>().add(TranslateEventTranslator(
+                    text: controller.text.trim(),
+                    originalLang: _currentLanguage.originalLang.name,
+                    translatorLang: _currentLanguage.translatorLang.name));
+                context.read<TranslateBloc>().add(
+                    TranslateEventCheckExistBookMark(
+                        originalWord: controller.text.trim()));
                 FocusScope.of(context).unfocus();
               },
               style: ButtonStyle(
@@ -149,7 +217,7 @@ class _TranslatePageState extends State<TranslatePage> {
   }
 
   Widget _translateWordsBox(BuildContext context,
-      {required TextEditingController controller}) {
+      {required TextEditingController controller, required String language}) {
     return _translateBox(
       context,
       controller: controller,
@@ -169,14 +237,34 @@ class _TranslatePageState extends State<TranslatePage> {
                 color: colorAppBar,
               )),
           IconButton(
-              onPressed: () {},
-              icon: const Icon(
-                Icons.star,
+              onPressed: () {
+                final translator = Translator(
+                    originalWord: _originalTextController.text.trim(),
+                    translatorWord: _translateTextController.text.trim(),
+                    originalLang: _originalLang,
+                    translatorLang: _translatorLang);
+
+                if (isExist) {
+                  context.read<TranslateBloc>().add(
+                      TranslateEventRemoveFromDatabase(
+                          originalWord: translator.originalWord,
+                          tableName: bookMarkTable));
+                } else {
+                  context
+                      .read<TranslateBloc>()
+                      .add(TranslateEventAddBookMark(translator: translator));
+                }
+                context.read<TranslateBloc>().add(
+                    TranslateEventCheckExistBookMark(
+                        originalWord: translator.originalWord.trim()));
+              },
+              icon: Icon(
+                isExist ? Icons.star : Icons.star_border,
                 color: colorAppBar,
               ))
         ],
       ),
-      language: 'Việt Nam',
+      language: language,
       readOnly: true,
       deleteButton: false,
     );

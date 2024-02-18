@@ -24,6 +24,8 @@ class TranslateStateIsFavourite extends TranslateState {
 class TranslateStateGetDataFromTableSuccessfuly extends TranslateState {
   final List<Translator> translators;
   TranslateStateGetDataFromTableSuccessfuly({required this.translators});
+  @override
+  List<Object> get props => [translators];
 }
 
 class TranslateStateAddToDatabseSucccesfuly extends TranslateState {}
@@ -33,3 +35,12 @@ class TranslateStateDeleteSucessfuly extends TranslateState {}
 class TranslateStateInitial extends TranslateState {}
 
 class TranslateStateLoading extends TranslateState {}
+
+class TranslateStateClearBox extends TranslateState {}
+
+class TranslateStateCheckExistBookMark extends TranslateState {
+  final bool isExist;
+  TranslateStateCheckExistBookMark({required this.isExist});
+  @override
+  List<Object> get props => [isExist];
+}

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+const databaseName = 'app.db';
+const historyTable = 'translator';
+const bookMarkTable = 'favourite';
 const colorWhite = Color.fromRGBO(255, 255, 255, 100);
 const colorAppBar = Color.fromRGBO(0, 51, 102, 100);
 const colorPurple = Color.fromRGBO(103, 80, 164, 5);
